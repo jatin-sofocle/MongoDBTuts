@@ -3,6 +3,8 @@ const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
 
+
+//user schema----type...required...and all
 var UserSchema = new mongoose.Schema({
   email: {
     type: String,
@@ -32,14 +34,20 @@ var UserSchema = new mongoose.Schema({
   }]
 });
 
-UserSchema.methods.toJSON = function(){
+
+
+//toJSON: chose what goes back to user---
+UserSchema.methods.toJSON = function () {
   var user = this;
   var userObject = user.toObject();
 
   return _.pick(userObject, ['_id', 'email']);
 }
 
-UserSchema.methods.generateAuthToken = function() {
+
+
+//generateAuthToken and saves it in the user instance----
+UserSchema.methods.generateAuthToken = function () {
   var user = this;
   var access = 'auth';
   var token = jwt.sign({_id: user._id.toHexString(), access}, '<SaltingKeyXYZ>').toString();
@@ -50,6 +58,31 @@ UserSchema.methods.generateAuthToken = function() {
   });
 }
 
+
+//find by token: adding model method---
+UserSchema.statics.findByToken = function (token) {
+  var User = this;
+  var decoded ;
+
+  try {
+    decoded = jwt.verify(token, '<SaltingKeyXYZ>');
+  } catch (e) {
+    return Promise.reject();
+  };
+
+
+  return User.findOne({
+    '_id': decoded._id,
+    'tokens.token': token,
+    'tokens.access': 'auth'
+  });
+}
+
+
+//creating model from schema-----
 var User = mongoose.model('user', UserSchema);
 
+
+
+//exports----
 module.exports = {User};

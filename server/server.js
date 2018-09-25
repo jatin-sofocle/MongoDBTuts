@@ -3,16 +3,21 @@ const bodyParser = require('body-parser');
 const _ = require('lodash');
 const {ObjectID} = require('mongodb');
 
+
 var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/todo');
 var {User} = require('./models/user');
+var {authenticate} = require('./middleware/authenticate');
 
 
 var app = express();
 var port = process.env.PORT || 3000;
 
+
 app.use(bodyParser.json());
 
+
+//post an user (sign up)-------
 app.post('/users', (req, res) => {
   var body = _.pick(req.body, ['email', 'password'])
   var user = new User(body);
@@ -26,6 +31,18 @@ app.post('/users', (req, res) => {
   });
 });
 
+
+
+
+//--/user/me route-----
+app.get('/users/me', authenticate, (req, res) => {
+  res.send(req.user);
+})
+
+
+
+
+//post an todo (Adding todo)------
 app.post('/todos', (req, res) => {
   console.log(req.body);
 
@@ -40,6 +57,10 @@ app.post('/todos', (req, res) => {
   });
 });
 
+
+
+
+//get all todos------
 app.get('/todos', (req, res) => {
   Todo.find().then((todos) => {
     res.send({todos});
@@ -48,6 +69,10 @@ app.get('/todos', (req, res) => {
   });
 });
 
+
+
+
+//get todo by an id------
 app.get('/todos/:id', (req, res) => {
 
   var id = req.params.id;
@@ -68,6 +93,9 @@ app.get('/todos/:id', (req, res) => {
 
 });
 
+
+
+//listen to port 3000----
 app.listen(port, () => {
   console.log(`Started on port ${port}`);
 });
