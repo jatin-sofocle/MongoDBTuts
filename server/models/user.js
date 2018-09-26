@@ -45,7 +45,7 @@ UserSchema.methods.toJSON = function () {
   return _.pick(userObject, ['_id', 'email']);
 }
 
-
+//for login...find by credentials-------
 UserSchema.statics.findByCredentials = function (email, password) {
   var User = this;
   return User.findOne({email}).then((user) => {
@@ -98,6 +98,18 @@ UserSchema.statics.findByToken = function (token) {
 }
 
 
+//removing token----
+UserSchema.methods.removeToken = function (token) {
+  user = this;
+  return user.update({
+    $pull: {
+      tokens:{token}
+    }
+  });
+}
+
+
+//Salting passwords
 UserSchema.pre('save', function (next) {
   var user = this;
 
